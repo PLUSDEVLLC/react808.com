@@ -62,7 +62,7 @@ function App() {
         <Provider>
             <main className="app">
                 <header className="app_header">
-                    <h1 className="app_title">REACT-808</h1>
+                    <h1 className="app_title">REACT 808 🎹</h1>
                     <ToolBar {...toolBarProps} />
                 </header>
                 <Steps count={totalSteps} />
