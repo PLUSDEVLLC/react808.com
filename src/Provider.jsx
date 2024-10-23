@@ -1,5 +1,5 @@
 import React, { useReducer, createContext } from 'react'
-import { sequenceList } from '../constants/config'
+import { sequenceList } from './constants/config'
 
 const Context = createContext({
     sequence: {},
@@ -14,19 +14,18 @@ const appReducer = (state, action) => {
                 ...sequenceList.find(seq => seq.id === action.value)
             }
         case 'SET_ON_NOTES':
-            let newTrackList = state.trackList.map((track, trackID) => {
-                if (action.trackID === trackID) {
-                    return {
-                        ...track,
-                        onNotes: action.value
-                    }
-                } else {
-                    return track
-                }
-            })
             return {
                 ...state,
-                trackList: newTrackList
+                trackList: state.trackList.map((track, trackID) => {
+                    if (action.trackID === trackID) {
+                        return {
+                            ...track,
+                            onNotes: action.value
+                        }
+                    } else {
+                        return track
+                    }
+                })
             }
         default:
             return state
