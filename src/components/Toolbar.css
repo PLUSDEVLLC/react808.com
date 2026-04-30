@@ -23,6 +23,18 @@
     cursor: pointer;
   }
 
+  .button_save {
+    margin-left: var(--spacer);
+    padding: 0 10px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+  }
+
+  .button_save:disabled {
+    cursor: progress;
+    opacity: 0.6;
+  }
+
   .button_icon_path {
     fill: var(--color-fg);
   }

@@ -1,6 +1,7 @@
-import { useContext, memo } from "react";
+import { useContext, memo, useState } from "react";
 import { sequenceList } from "../constants/config";
 import { Context } from "../Provider";
+import { renderSequenceToWav, downloadBlob } from "../utils/exportWav";
 import "./Toolbar.css";
 
 const ToolBar = ({
@@ -10,11 +11,12 @@ const ToolBar = ({
   isSequencePlaying,
   startTime,
   BPM,
+  totalSteps,
+  totalBeats,
 }) => {
-  const {
-    sequence: { id: selectedSequenceID },
-    selectSequence,
-  } = useContext(Context);
+  const { sequence, selectSequence } = useContext(Context);
+  const { id: selectedSequenceID, title: sequenceTitle } = sequence;
+  const [isSaving, setIsSaving] = useState(false);
 
   function togglePlayback() {
     if (isSequencePlaying) {
@@ -32,6 +34,22 @@ const ToolBar = ({
 
   function updateBPM(e) {
     setBPM(e.target.value);
+  }
+
+  async function saveTrack() {
+    setIsSaving(true);
+    try {
+      const blob = await renderSequenceToWav({
+        sequence,
+        BPM: Number(BPM),
+        totalSteps,
+        totalBeats,
+      });
+      const safeName = String(sequenceTitle).replace(/\s+/g, "_").toLowerCase();
+      downloadBlob(blob, `${safeName}_${BPM}bpm.wav`);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
@@ -85,6 +103,15 @@ const ToolBar = ({
       <label className="label_bpm" htmlFor="bpm">
         BPM
       </label>
+      <button
+        className="form_element button_save"
+        onClick={saveTrack}
+        disabled={isSaving}
+        aria-label="Save track to WAV file"
+        title="Save track to WAV file"
+      >
+        {isSaving ? "..." : "SAVE"}
+      </button>
       <select
         className="form_element select_sequence"
         value={selectedSequenceID}
