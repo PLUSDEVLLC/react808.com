@@ -47,6 +47,8 @@ function Board() {
     isSequencePlaying,
     startTime,
     BPM,
+    totalSteps,
+    totalBeats,
   };
 
   const playHeadProps = {
