@@ -24,10 +24,24 @@
   }
 
   .button_save {
-    margin-left: var(--spacer);
+    margin-left: calc(var(--spacer) / 2);
     padding: 0 10px;
     cursor: pointer;
     letter-spacing: 0.05em;
+  }
+
+  .select_lofi {
+    margin-left: var(--spacer);
+    padding: 0 10px;
+    text-transform: uppercase;
+    border-radius: 0;
+    -webkit-appearance: none;
+    -webkit-border-radius: 0px;
+  }
+
+  .select_lofi:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
   }
 
   .button_save:disabled {

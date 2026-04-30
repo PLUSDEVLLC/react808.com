@@ -1,8 +1,21 @@
 import { useContext, memo, useState } from "react";
 import { sequenceList } from "../constants/config";
 import { Context } from "../Provider";
-import { renderSequenceToWav, downloadBlob } from "../utils/exportWav";
+import {
+  renderSequence,
+  audioBufferToWavBlob,
+  downloadBlob,
+} from "../utils/exportWav";
+import { applyOpusLofi, isWebCodecsSupported } from "../utils/lofiCodec";
 import "./Toolbar.css";
+
+const LOFI_OPTIONS = [
+  { value: 0, label: "Hi-Fi" },
+  { value: 64000, label: "64k Opus" },
+  { value: 32000, label: "32k Opus" },
+  { value: 16000, label: "16k Opus" },
+  { value: 6000, label: "6k Opus" },
+];
 
 const ToolBar = ({
   setStartTime,
@@ -17,6 +30,7 @@ const ToolBar = ({
   const { sequence, selectSequence } = useContext(Context);
   const { id: selectedSequenceID, title: sequenceTitle } = sequence;
   const [isSaving, setIsSaving] = useState(false);
+  const [lofiBitrate, setLofiBitrate] = useState(0);
 
   function togglePlayback() {
     if (isSequencePlaying) {
@@ -39,14 +53,25 @@ const ToolBar = ({
   async function saveTrack() {
     setIsSaving(true);
     try {
-      const blob = await renderSequenceToWav({
+      // Opus only natively supports 8/12/16/24/48kHz; render at 48k when lo-fi
+      // is enabled to avoid an extra resampling step before the encoder.
+      const sampleRate = lofiBitrate ? 48000 : 44100;
+      const rendered = await renderSequence({
         sequence,
         BPM: Number(BPM),
         totalSteps,
         totalBeats,
+        sampleRate,
       });
+      const finalBuffer = lofiBitrate
+        ? await applyOpusLofi(rendered, lofiBitrate)
+        : rendered;
       const safeName = String(sequenceTitle).replace(/\s+/g, "_").toLowerCase();
-      downloadBlob(blob, `${safeName}_${BPM}bpm.wav`);
+      const suffix = lofiBitrate ? `_opus${lofiBitrate / 1000}k` : "";
+      downloadBlob(
+        audioBufferToWavBlob(finalBuffer),
+        `${safeName}_${BPM}bpm${suffix}.wav`,
+      );
     } finally {
       setIsSaving(false);
     }
@@ -103,6 +128,24 @@ const ToolBar = ({
       <label className="label_bpm" htmlFor="bpm">
         BPM
       </label>
+      <select
+        className="form_element select_lofi"
+        value={lofiBitrate}
+        onChange={(e) => setLofiBitrate(+e.target.value)}
+        disabled={!isWebCodecsSupported}
+        aria-label="Lo-fi bitrate"
+        title={
+          isWebCodecsSupported
+            ? "Run the saved track through Opus at this bitrate"
+            : "WebCodecs not supported in this browser"
+        }
+      >
+        {LOFI_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
+          </option>
+        ))}
+      </select>
       <button
         className="form_element button_save"
         onClick={saveTrack}

@@ -1,7 +1,6 @@
 import { soundFiles } from '../constants/config'
 
-export async function renderSequenceToWav({ sequence, BPM, totalSteps, totalBeats }) {
-    const sampleRate = 44100
+export async function renderSequence({ sequence, BPM, totalSteps, totalBeats, sampleRate = 44100 }) {
     const numChannels = 2
     const tailSeconds = 1
     const durationSeconds = (60 / BPM) * totalBeats + tailSeconds
@@ -33,11 +32,10 @@ export async function renderSequenceToWav({ sequence, BPM, totalSteps, totalBeat
         }
     }
 
-    const rendered = await offlineCtx.startRendering()
-    return audioBufferToWavBlob(rendered)
+    return await offlineCtx.startRendering()
 }
 
-function audioBufferToWavBlob(buffer) {
+export function audioBufferToWavBlob(buffer) {
     const numChannels = buffer.numberOfChannels
     const sampleRate = buffer.sampleRate
     const bytesPerSample = 2
